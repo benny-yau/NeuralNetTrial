@@ -43,8 +43,8 @@ namespace ConnectFour
             {
                 switch (value)
                 {
-                    case TrainStatus.Create: btnStart.Content = "Start"; EnableAllControls(); Title = "Neural Network";  break;
-                    case TrainStatus.Running: btnStart.Content = "Pause"; EnableAllControls(false); btnStart.IsEnabled = true; Title = tbName.Text;  break;
+                    case TrainStatus.Create: btnStart.Content = "Start"; EnableAllControls(); Title = "Neural Network"; break;
+                    case TrainStatus.Running: btnStart.Content = "Pause"; EnableAllControls(false); btnStart.IsEnabled = true; Title = tbName.Text; break;
                     case TrainStatus.Paused: btnStart.Content = "Resume"; EnableAllControls(); DisableInitialControls(); break;
                     case TrainStatus.Finished: btnStart.Content = "Done"; EnableAllControls(); DisableInitialControls(); break;
                 }
@@ -114,7 +114,7 @@ namespace ConnectFour
 
         public void PopulateControls(Network network)
         {
-            tbName.Text = network.Name; 
+            tbName.Text = network.Name;
             tbInputs.Text = network.Inputs.Count.ToString();
             tbHiddens.Text = network.HiddensLayout.Aggregate(string.Empty, (total, i) => total += i.ToString() + " ").Trim();
             tbOutputs.Text = network.Outputs.Count.ToString();
@@ -205,11 +205,11 @@ namespace ConnectFour
                 }
 
                 if (Thread != null && Thread.IsAlive)
-                   Thread.Join(); // Wait for last thread to finish working before starting again.
+                    Thread.Join(); // Wait for last thread to finish working before starting again.
 
                 Termination termination;
                 if (cbTerminationType.Text == "ByValidationSet")
-                    termination = Termination.ByValidationSet(DataParser.ValidationSet, ToInt(tbValidateCycle, x => x > 0, "Validation cycle must be > 0"));
+                    termination = Termination.ByValidationSet(DataParser.ValidationSet(), ToInt(tbValidateCycle, x => x > 0, "Validation cycle must be > 0"));
                 else if (cbTerminationType.Text == "ByIteration")
                     termination = Termination.ByIteration(ToInt(tbIterations, x => x > 0, "Iterations must be > 0"));
                 else
@@ -270,8 +270,8 @@ namespace ConnectFour
             Trainer = new Trainer(this);
             Trainer.Train(TrainingRegimen.Blank);
         }
-        
-        public int ToInt(TextBox tb, Func<int, bool> func = null, string errorMessage=null)
+
+        public int ToInt(TextBox tb, Func<int, bool> func = null, string errorMessage = null)
         {
             return ToInt(tb.Text, tb, func, errorMessage);
         }
@@ -285,7 +285,7 @@ namespace ConnectFour
             return x;
         }
 
-        public double ToDouble(TextBox tb, Func<double, bool> func = null, string errorMessage=null)
+        public double ToDouble(TextBox tb, Func<double, bool> func = null, string errorMessage = null)
         {
             double x;
             if (!double.TryParse(tb.Text.Trim(), out x))

@@ -56,8 +56,8 @@ namespace ConnectFour
         {
             gridBoard.Children.RemoveRange(7, gridBoard.Children.Count - 7); // Don't remove the 7 borders.
             Mode = mode;
-            Checker = Checker.Blue;
-            CurrentBoard = new Board();
+            Checker = Checker.Black;
+            CurrentBoard = new ConnectFourBoard();
             if (!startup)
                 GetValidNetwork(); // Assert valid current network be means of a messagebox.
         }
@@ -92,7 +92,7 @@ namespace ConnectFour
                 Simulator.Play(TrainingRegimen.Blank(), Settings.Default.CurrentNetwork);
         }
 
-        private Checker Checker = Checker.Blue;
+        private Checker Checker = Checker.Black;
         private void Border_MouseUp(object sender, MouseEventArgs e)
         {
             if (CurrentBoard.IsGameOver)
@@ -100,7 +100,7 @@ namespace ConnectFour
 
             Network network = GetValidNetwork();
             if (network != null)
-                Bot = new NeuralNetBot(Checker.Green, network, 0);
+                Bot = new NeuralNetBot(Checker.White, network, 0);
             else if (Mode != GameMode.HumanVHuman)
                 return;
 
@@ -112,7 +112,6 @@ namespace ConnectFour
             if (Mode == GameMode.HumanVComputer)
             {
                 double score;
-                int column2;
                 CurrentBoard.AddChecker(Checker, column);
                 if (CurrentBoard.IsGameOver)
                 {
@@ -120,14 +119,15 @@ namespace ConnectFour
                     GameOverAnimation();
                     return;
                 }
+                Tuple<int, int> column2;
                 Bot.SelectMove(CurrentBoard, out column2, out score);
-                CurrentBoard.AddChecker(Board.Toggle(Checker), column2);
-                BatchAddCheckers(Checker, new List<int> { column, column2 }, updateBoard: false);
+                CurrentBoard.AddChecker(CurrentBoard.Toggle(Checker), column2.Item1);
+                BatchAddCheckers(Checker, new List<int> { column, column2.Item1 }, updateBoard: false);
             }
             else
             {
                 AddChecker(Checker, column);
-                Checker = Board.Toggle(Checker);
+                Checker = CurrentBoard.Toggle(Checker);
             }
 
             if (CurrentBoard.IsGameOver)
@@ -143,7 +143,7 @@ namespace ConnectFour
             for (int i = 0; i < CurrentBoard.Rows; ++i)
                 for (int j = 0; j < CurrentBoard.Columns; ++j)
                 {
-                    if (!CurrentBoard.WinningSequence.Any(t => t.Item1 == i && t.Item2 == j))
+                    if (!((ConnectFourBoard)CurrentBoard).WinningSequence.Any(t => t.Item1 == i && t.Item2 == j))
                     {
                         Image image = gridBoard.Children.OfType<Image>().Where(e => (int)e.GetValue(Grid.RowProperty) == i && (int)e.GetValue(Grid.ColumnProperty) == j).FirstOrDefault();
                         if (image == null)
@@ -179,7 +179,7 @@ namespace ConnectFour
             {
                 Image image = new Image();
                 image.Stretch = Stretch.Uniform;
-                image.Source = (checker == Checker.Blue ? new BitmapImage(new Uri("/Icons/orbz_water.ico", UriKind.Relative)) : new BitmapImage(new Uri("/Icons/orbz_spirit.ico", UriKind.Relative)));
+                image.Source = (checker == Checker.Black ? new BitmapImage(new Uri("/Icons/orbz_water.ico", UriKind.Relative)) : new BitmapImage(new Uri("/Icons/orbz_spirit.ico", UriKind.Relative)));
                 image.SetValue(Grid.ColumnProperty, column);
                 int? minRow = gridBoard.Children.OfType<Image>().Where(e => (int)e.GetValue(Grid.ColumnProperty) == column).Select(e => (int?)e.GetValue(Grid.RowProperty)).Min();
                 if (minRow.HasValue && minRow == 0)
@@ -200,11 +200,11 @@ namespace ConnectFour
                 Storyboard.SetTargetProperty(animation, new PropertyPath(Image.MarginProperty));
                 story.Children.Add(animation);
 
-                DoubleAnimation fade = (completedBoard != null && !completedBoard.WinningSequence.Any(t => t.Item1 == row && t.Item2 == column) ? Fade(image, 1, Settings.Default.FadeTo, i * Settings.Default.MoveDelay, Settings.Default.FadeSpeed) : Fade(image, 0, 1, i * Settings.Default.MoveDelay, 0));
+                DoubleAnimation fade = (completedBoard != null && !((ConnectFourBoard)CurrentBoard).WinningSequence.Any(t => t.Item1 == row && t.Item2 == column) ? Fade(image, 1, Settings.Default.FadeTo, i * Settings.Default.MoveDelay, Settings.Default.FadeSpeed) : Fade(image, 0, 1, i * Settings.Default.MoveDelay, 0));
                 story.Children.Add(fade);
                 story.Completed += new EventHandler(story_Completed);
 
-                checker = Board.Toggle(checker);
+                checker = CurrentBoard.Toggle(checker);
                 ++i;
             }
             story.Begin();

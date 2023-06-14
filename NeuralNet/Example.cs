@@ -12,7 +12,10 @@ namespace NeuralNet
         public List<double> Features = new List<double>();
         public List<double> Labels = new List<double>();
         public List<double> Predictions = new List<double>();
-
+        public String ScenarioName;
+        public int NumberOfMoves;
+        public object Board;
+        public object RootBoard;
         private Example() { }
 
         /// <summary>
@@ -28,27 +31,27 @@ namespace NeuralNet
         public override string ToString()
         {
             string str = string.Empty;
-			if (Features.Count == 42)
-			{
-				// treat this as a Connect-Four simple example
-            	for (int i = 0; i < Features.Count; ++i)
-            	{
-                	str += Features[i]<0 ? "x" : Features[i] == 0 ? "-" : "o";
-                	if (i % 7 == 6 && i < Features.Count - 1)
-                    	str += "\r\n";
-				}
+            if (Features.Count == 42)
+            {
+                // treat this as a Connect-Four simple example
+                for (int i = 0; i < Features.Count; ++i)
+                {
+                    str += Features[i] < 0 ? "x" : Features[i] == 0 ? "-" : "o";
+                    if (i % 7 == 6 && i < Features.Count - 1)
+                        str += "\r\n";
+                }
             }
-			else
-			{
-				for (int i = 0; i < Features.Count; i++)
-				{
-					str += String.Format("{0:#.00} ", Features[i]);
-				}
-			}
-			if (Predictions.Count > 0)
-				str += "  predicted " + Predictions[0];
-			if (Labels.Count > 0)
-				str += "  labeled " + Labels[0];
+            else
+            {
+                for (int i = 0; i < Features.Count; i++)
+                {
+                    str += String.Format("{0:#.00} ", Features[i]);
+                }
+            }
+            if (Predictions.Count > 0)
+                str += "  predicted " + Predictions[0];
+            if (Labels.Count > 0)
+                str += "  labeled " + Labels[0];
             return str;
         }
     }

@@ -12,13 +12,13 @@ namespace ConnectFour
     /// </summary>
     public static class Transform
     {
-        public static double ToValue(Checker checker) 
+        public static double ToValue(Checker checker)
         {
             switch (checker)
             {
-                case Checker.Blue: return -1.0; 
-                case Checker.Green: return 1.0; 
-                case Checker.Empty: return 0.0; 
+                case Checker.Black: return -1.0;
+                case Checker.White: return 1.0;
+                case Checker.Empty: return 0.0;
                 default: throw new Exception();
             }
         }
@@ -39,9 +39,9 @@ namespace ConnectFour
             if (checker == Checker.Empty)
                 return ToValue(checker);
             else if (checker == lastPlayerToGo)
-                return ToValue(Checker.Green);
+                return ToValue(Checker.White);
             else
-                return ToValue(Checker.Blue);  // The player that is about to go will be blue.  
+                return ToValue(Checker.Black);  // The player that is about to go will be blue.  
         }
 
 
@@ -52,19 +52,23 @@ namespace ConnectFour
         public static Example ToNormalizedExample(Board board, Checker lastPlayerToGo)
         {
             Debug.Assert(lastPlayerToGo != Checker.Empty);
-            List<double> boardState = board.Cells.Cast<Checker>().Select(c=>Transform.ToNormalizedValue(c, lastPlayerToGo)).ToList();
+            List<double> boardState = board.CellsInSingleArray().Select(c => Transform.ToNormalizedValue(c, lastPlayerToGo)).ToList();
             List<int> features = new List<int>();
 
             // 42 Input Units - Board State Only
             // return new Example(boardState);
-            
-            foreach (Checker checker in new List<Checker> { lastPlayerToGo, Board.Toggle(lastPlayerToGo) })
+
+            if (board is ConnectFourBoard)
             {
-                features.AddRange(board.LineOfX(checker));
-                features.AddRange(board.LineOfX(checker, potential: true));
-                features.AddRange(board.NumbersInColumns(checker));
-                features.AddRange(board.NumbersInRows(checker));
-                features.Add(board.NumberOnBoard(checker));
+                ConnectFourBoard b = (ConnectFourBoard)board;
+                foreach (Checker checker in new List<Checker> { lastPlayerToGo, b.Toggle(lastPlayerToGo) })
+                {
+                    features.AddRange(b.LineOfX(checker));
+                    features.AddRange(b.LineOfX(checker, potential: true));
+                    features.AddRange(b.NumbersInColumns(checker));
+                    features.AddRange(b.NumbersInRows(checker));
+                    features.Add(b.NumberOnBoard(checker));
+                }
             }
             boardState.AddRange(features.Select(e => (double)e));
 
@@ -76,6 +80,6 @@ namespace ConnectFour
 
         }
 
-  
+
     }
 }

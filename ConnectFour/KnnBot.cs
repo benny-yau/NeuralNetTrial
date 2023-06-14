@@ -21,7 +21,7 @@ namespace ConnectFour
 
 			// this learner needs to have at least one example
 			// to start with
-			Example e = MakeExample(new Board(), Checker.Blue);
+			Example e = MakeExample(new ConnectFourBoard(), Checker.Black);
 			e.Labels.Add(0.5);
 			LearnOneExample(e);
 		}
