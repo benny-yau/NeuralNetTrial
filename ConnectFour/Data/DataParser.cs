@@ -122,7 +122,7 @@ namespace ConnectFour
             for (int i = 0; i <= scenarioList.Count - 1; i++)
             {
                 Game game = ScenarioHelper.GetScenarioFromList(scenarioList, i);
-                if (GameHelper.IsSurviveOrKill(game.GameInfo, surviveOrKill)) continue;
+                if (!GameHelper.IsSurviveOrKill(game.GameInfo, surviveOrKill)) continue;
                 JArray mappedJson = GameMapping.GetMappedJson(game);
                 foreach (JObject move in mappedJson)
                 {
