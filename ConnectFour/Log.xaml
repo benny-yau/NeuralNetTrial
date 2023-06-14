@@ -1,0 +1,8 @@
+﻿<Window x:Class="ConnectFour.Log"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Log" Height="371" Width="363" Icon="/ConnectFour;component/Icons/orbz_lightning.ico" Closing="Window_Closing">
+    <Grid>
+        <TextBox Name="tbLog" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="#8BFFFFFF" />
+    </Grid>
+</Window>

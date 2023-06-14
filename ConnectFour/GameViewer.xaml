@@ -1,0 +1,82 @@
+﻿<Window x:Class="ConnectFour.GameViewer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Connect Four" Height="350" Width="525"  Icon="/ConnectFour;component/Icons/orbz_water.ico" Background="White"  Closing="Window_Closing" Loaded="Window_Loaded">
+    <Window.Resources>
+        <SolidColorBrush x:Key="HoverColor" Color="#08000000"></SolidColorBrush>
+        <Thickness x:Key="BorderThickness1">0,0,0,0</Thickness>
+        <Style x:Key="BorderHighlight"  TargetType="{x:Type Border}">
+            <Setter Property="Background" Value="Transparent" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource HoverColor}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="GridBorderHighlight" BasedOn="{StaticResource BorderHighlight}" TargetType="{x:Type Border}">
+            <Setter Property="Grid.RowSpan" Value="6"/>
+            <EventSetter Event="MouseUp" Handler="Border_MouseUp" />
+        </Style>
+    </Window.Resources>
+    <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="246*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+        <Border BorderThickness="1" CornerRadius="10" >
+            <Grid x:Name="gridBoard">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Style="{StaticResource GridBorderHighlight}" />
+                <Border Grid.Column="1" Style="{StaticResource GridBorderHighlight}">
+                    
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource GridBorderHighlight}"  />
+                <Border Grid.Column="3" Style="{StaticResource GridBorderHighlight}" />
+                <Border Grid.Column="4" Style="{StaticResource GridBorderHighlight}"></Border>
+                <Border Grid.Column="5" Style="{StaticResource GridBorderHighlight}" />
+                <Border Grid.Column="6" Style="{StaticResource GridBorderHighlight}" />
+            </Grid>
+            <!--<Border.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#35145656" Offset="0.994" />
+                    <GradientStop Color="#00FCFFFF" Offset="0.302" />
+                </LinearGradientBrush>
+            </Border.Background>-->
+             </Border>
+        
+            <StackPanel Grid.Row="1"   HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+            <Border Style="{StaticResource BorderHighlight}" Width="75" Padding="0,3,0,0" MouseUp="HumanVHuman_MouseUp" Name="btnHumanVHuman">
+                    <Image Source="/ConnectFour;component/Icons/neverball_green.png" Width="50" ToolTip="Human v Human" />
+                </Border>
+            <Border Style="{StaticResource BorderHighlight}" Width="75" Padding="0,3,0,0" MouseUp="HumanVComputer_MouseUp" Name="btnHumanVComputer">
+                <Image Source="/ConnectFour;component/Icons/neverball_blue.png" Width="50" ToolTip="Human v Computer" />
+            </Border>
+            <Border Style="{StaticResource BorderHighlight}" Width="75" Padding="0,3,0,0" MouseUp="ComputerVComputer_MouseUp" Name="btnComputerVComputer">
+                <Image Source="/ConnectFour;component/Icons/neverball_purple.png" Width="50" ToolTip="Computer v Computer" />
+             
+            </Border>
+        </StackPanel>
+        <Border Style="{StaticResource BorderHighlight}" Padding="0,3,0,0" MouseUp="ToggleLog_MouseUp"  Height="28" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Image Source="/ConnectFour;component/Icons/violet_light.png" ToolTip="Toggle Log" />
+        </Border>
+        <Border Style="{StaticResource BorderHighlight}" Padding="0,3,0,0" MouseUp="ToggleSettings_MouseUp"  Height="28" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+            <Image Source="/ConnectFour;component/Icons/blue_light.png" ToolTip="Toggle Settings" />
+        </Border>
+    </Grid>
+</Window>
