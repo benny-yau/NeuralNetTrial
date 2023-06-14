@@ -17,7 +17,7 @@ namespace ConsoleGo
         public void ShowNetworkResults()
         {
             //load network
-            String fileName = System.IO.Directory.GetCurrentDirectory() + @"\nn1\X_nn1_25200_0.314306536896135.net";
+            String fileName = System.IO.Directory.GetCurrentDirectory() + @"\nn1\nn1.net";
             Network network = Simulator.LoadNetwork(fileName);
             do
             {
@@ -34,10 +34,8 @@ namespace ConsoleGo
                 Console.WriteLine(CurrentBoard.ToString() + Environment.NewLine);
                 GetAnswer(game);
                 Console.WriteLine(Environment.NewLine);
-                List<double> results = columnEvaluations.Select(n => (double)n.CheckMove).ToList();
-                double lowerSD = results.Mean() - (results.StandardDeviation() * 2);
                 foreach (LinkedPoint<Tuple<int, int>> p in columnEvaluations.OrderByDescending(n => (double)n.CheckMove))
-                    Console.WriteLine("Move: " + p.Move + " - " + p.CheckMove.ToString() + ((((double)p.CheckMove) < lowerSD) ? " (out)" : ""));
+                    Console.WriteLine("Move: " + p.Move + " - " + p.CheckMove.ToString());
                 Console.WriteLine(Environment.NewLine + Environment.NewLine);
             } while (true);
         }
