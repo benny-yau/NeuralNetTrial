@@ -201,7 +201,10 @@ namespace ConnectFour
             Settings.Default.CurrentNetworkPath = path;
             Settings.Default.CurrentNetwork = null;
 
-            return Settings.Default.CurrentNetwork;
+            Network network = Settings.Default.CurrentNetwork;
+            if (network == null)
+                throw new Exception("Network not found");
+            return network;
         }
     }
 }

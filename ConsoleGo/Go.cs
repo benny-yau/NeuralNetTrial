@@ -13,7 +13,11 @@ namespace ConsoleGo
 {
     public class Go
     {
+        static Network network;
 
+        /// <summary>
+        /// Show network results.
+        /// </summary>
         public void ShowNetworkResults()
         {
             //load network
@@ -136,10 +140,13 @@ namespace ConsoleGo
             } while (true);
         }
 
-        static Network network;
+        /// <summary>
+        /// Train network.
+        /// </summary>
         public void TrainNetwork(Boolean startNew = true)
         {
-            Termination termination = Termination.ByValidationSet(DataParser.ValidationSet(GameType.Go, SurviveOrKill.Kill), 1800);
+            List<Example> validationSet = DataParser.ValidationSet(GameType.Go, SurviveOrKill.Kill);
+            Termination termination = Termination.ByValidationSet(validationSet, 1800);
             NetworkParameters parameters = new NetworkParameters()
             {
                 InitialWeightInterval = new Tuple<double, double>(-0.05, 0.05),
@@ -153,9 +160,9 @@ namespace ConsoleGo
             {
                 network = new Network(
                             "nn1",
-                            143,
-                            429,
-                            1,
+                            143, //input
+                            429, //hidden
+                            1, //output
                             termination,
                             parameters);
             }
@@ -163,7 +170,6 @@ namespace ConsoleGo
             {
                 String fileName = System.IO.Directory.GetCurrentDirectory() + @"\nn1\nn1.net";
                 Network network = Simulator.LoadNetwork(fileName);
-                network = Simulator.LoadNetwork(fileName);
                 network.Termination = termination;
             }
             do

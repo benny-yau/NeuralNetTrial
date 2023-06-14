@@ -40,7 +40,6 @@ namespace ConsoleGo
             //load network
             String fileName = System.IO.Directory.GetCurrentDirectory() + @"\cf\cf.net";
             Network network = Simulator.LoadNetwork(fileName);
-            if (network == null) throw new Exception("Network not found.");
             Bot bot = new NeuralNetBot(Checker.White, network, 0);
 
             Checker checker = Checker.Black;

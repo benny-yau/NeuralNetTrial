@@ -48,8 +48,7 @@ namespace ConnectFour
         public void TrainWithValidationSet(Func<Board> regimen)
         {
             String scenarioName = ((Go.Board)regimen()).GameInfo.ScenarioName;
-            List<Example> validationSet = DataParser.ValidationSet(GameType.Go, Go.SurviveOrKill.Kill);
-            validationSet = validationSet.Where(n => n.ScenarioName == scenarioName).ToList();
+            List<Example> validationSet = DataParser.ValidationSet().Where(n => n.ScenarioName == scenarioName).ToList();
             if (validationSet.Count == 0) return;
 
             for (int i = 0; i <= validationSet.Count - 1; i++)
@@ -57,7 +56,7 @@ namespace ConnectFour
                 Example example = validationSet[i];
                 List<Example> trace = Simulator.Play(regimen(), Network, example);
                 Network.TrainNetwork(trace);
-                if (i % 5 == 0) Debug.WriteLine("iter : " + (i + 1).ToString() + " out of " + validationSet.Count);
+                if (i % 10 == 0) Debug.WriteLine("iter : " + (i + 1).ToString() + " out of " + validationSet.Count);
             }
         }
     }

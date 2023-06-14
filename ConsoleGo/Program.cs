@@ -25,6 +25,7 @@ namespace ConsoleGo
             {
                 Console.WriteLine(ex.Message);
             }
+            Console.ReadLine();
         }
     }
 }
