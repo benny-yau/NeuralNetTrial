@@ -32,17 +32,17 @@ namespace ConnectFour
         public abstract Example MakeExample(Board board, Checker color);
         public abstract void LearnOneExample(Example example);
 
-        public void recSelectMove(Board board, out Tuple<int, int> column, out double score, out List<Go.LinkedPoint<Tuple<int, int>>> columnEvaluations)
+        public void recSelectMove(Board board, out Tuple<int, int> column, out double score, out List<Go.LinkedPoint<Tuple<int, int>>> evaluations)
         {
             Tuple<int, int> bestX = null;
-            columnEvaluations = new List<Go.LinkedPoint<Tuple<int, int>>>();
+            evaluations = new List<Go.LinkedPoint<Tuple<int, int>>>();
             double bestV = Double.NegativeInfinity;
 
             IEnumerable<Board> boards = board.GetPossibleMoves(MyColor);
             foreach (Board b in boards)
             {
                 double v = EvaluateBoard(b);
-                columnEvaluations.Add(new Go.LinkedPoint<Tuple<int, int>>(b.Move, v));
+                evaluations.Add(new Go.LinkedPoint<Tuple<int, int>>(b.Move, v));
                 if (v > bestV)
                 {
                     bestV = v;
@@ -63,18 +63,18 @@ namespace ConnectFour
         ///  low values of Lambda will have the opposite effect Lambda should be positive number.  Otherwise, no exploration will take place. 
         ///  If non-positive, just return the "best" move now, to avoid divide-by-zero type issues.
         /// </summary>
-        public void SelectMove(Board board, out Tuple<int, int> column, out double score)
+        public void SelectMove(Board board, out Tuple<int, int> move, out double score)
         {
-            List<Go.LinkedPoint<Tuple<int, int>>> columnEvaluations;
-            recSelectMove(board, out column, out score, out columnEvaluations);
+            List<Go.LinkedPoint<Tuple<int, int>>> evaluations;
+            recSelectMove(board, out move, out score, out evaluations);
             if (LambdaType == LambdaType.ProbabilityDistribution && Lambda > 0)
             {
                 double sum = 0.0;
-                double[] weights = new double[columnEvaluations.Count];
-                for (int i = 0; i < columnEvaluations.Count; i++)
+                double[] weights = new double[evaluations.Count];
+                for (int i = 0; i < evaluations.Count; i++)
                 {
                     // the closer this column's evaluation to the "best", the greater weight it will have
-                    double w = 1 / (Lambda + (score - (double)columnEvaluations[i].CheckMove));
+                    double w = 1 / (Lambda + (score - (double)evaluations[i].CheckMove));
                     weights[i] = w;
                     sum += w;
                 }
@@ -87,12 +87,12 @@ namespace ConnectFour
                     if (r <= 0)
                         break;
                 }
-                if (columnEvaluations.Count() == 0)
-                    column = Tuple.Create(-1, -1);
+                if (evaluations.Count() == 0)
+                    move = Tuple.Create(-1, -1);
                 else
                 {
-                    column = columnEvaluations[c].Move;
-                    score = (double)columnEvaluations[c].CheckMove;
+                    move = evaluations[c].Move;
+                    score = (double)evaluations[c].CheckMove;
                 }
             }
         }

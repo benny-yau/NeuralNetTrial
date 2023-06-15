@@ -152,22 +152,12 @@ namespace ConnectFour
         {
             Bot current = allen.MyColor == board.NextPlayer ? allen : jason;
             Go.Board b = (Go.Board)validationExample.Board;
-
-            Tuple<int, int> move;
-            double score;
             foreach (Go.Point p in b.LastMoves)
             {
-                List<Go.LinkedPoint<Tuple<int, int>>> evaluations;
-                //select move
-                current.recSelectMove(board, out move, out score, out evaluations);
-                move = Tuple.Create(p.x, p.y);
-                //make move
-                board.AddChecker(current.MyColor, move.Item1, move.Item2);
-                //make prediction
+                board.AddChecker(current.MyColor, p.x, p.y);
                 Example example = Transform.ToNormalizedExample(board, current.MyColor);
-                example.Predictions.Add(score);
+                example.Predictions.Add(0);
                 trace.Add(example);
-
                 current = (current == allen ? jason : allen);
                 ++Turns;
             }

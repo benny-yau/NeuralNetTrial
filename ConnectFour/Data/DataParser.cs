@@ -123,63 +123,72 @@ namespace ConnectFour
             {
                 Game game = ScenarioHelper.GetScenarioFromList(scenarioList, i);
                 if (!GameHelper.IsSurviveOrKill(game.GameInfo, surviveOrKill)) continue;
-                JArray mappedJson = GameMapping.GetMappedJson(game);
-                foreach (JObject move in mappedJson)
+                JArray playerJson = GameMapping.GetMappedJson(game);
+                ParseMappedJson(game, playerJson, validationSet);
+
+                if (game.GameInfo.solutionPoints.Count == 0) continue;
+
+                game.GameInfo.UserFirst = PlayerOrComputer.Computer;
+                game.InitializeComputerMove();
+                JArray challengeJson = GameMapping.GetMappedJson(game);
+                ParseMappedJson(game, challengeJson, validationSet);
+            }
+            return validationSet;
+        }
+
+        public static void ParseMappedJson(Game game, JArray mappedJson, List<Example> validationSet)
+        {
+            foreach (JObject move in mappedJson)
+            {
+                GoBoard b = new GoBoard(game.Board);
+                Content c = GameHelper.GetContentForNextMove(b);
+                Point firstMove = new Point((int)move["FirstMove"]["x"], (int)move["FirstMove"]["y"]);
+                if (!b.PointWithinBoard(firstMove)) continue;
+                b.InternalMakeMove(firstMove, c);
+                Point secondMove = new Point((int)move["SecondMove"]["x"], (int)move["SecondMove"]["y"]);
+                if (!b.PointWithinBoard(secondMove)) continue;
+                b.InternalMakeMove(secondMove, c.Opposite());
+                //add to validation set
+                validationSet.Add(GetExample(new GoBoard(game.Board), b, c));
+                if (move["SecondLevel"] == null) continue;
+
+                foreach (JObject move2 in move["SecondLevel"])
                 {
-                    GoBoard b = new GoBoard(game.Board);
-                    Content c = GameHelper.GetContentForNextMove(b);
-                    Point firstMove = new Point((int)move["FirstMove"]["x"], (int)move["FirstMove"]["y"]);
-                    if (!b.PointWithinBoard(firstMove)) continue;
-                    b.InternalMakeMove(firstMove, c);
-                    Boolean solutionMove = SolutionHelper.GetSolutionMove(b) != null;
-                    Point secondMove = new Point((int)move["SecondMove"]["x"], (int)move["SecondMove"]["y"]);
-                    if (!b.PointWithinBoard(secondMove)) continue;
-                    b.InternalMakeMove(secondMove, c.Opposite());
+                    GoBoard b2 = new GoBoard(b);
+                    Point thirdMove = new Point((int)move2["ThirdMove"]["x"], (int)move2["ThirdMove"]["y"]);
+                    if (!b2.PointWithinBoard(thirdMove)) continue;
+                    b2.InternalMakeMove(thirdMove, c);
+                    Point fourthMove = new Point((int)move2["FourthMove"]["x"], (int)move2["FourthMove"]["y"]);
+                    if (!b2.PointWithinBoard(fourthMove)) continue;
+                    b2.InternalMakeMove(fourthMove, c.Opposite());
                     //add to validation set
-                    validationSet.Add(GetExample(new GoBoard(game.Board), b, c, solutionMove));
-                    if (move["SecondLevel"] == null) continue;
+                    validationSet.Add(GetExample(b, b2, c));
+                    if (move["ThirdLevel"] == null) continue;
 
-                    foreach (JObject move2 in move["SecondLevel"])
+                    foreach (JObject move3 in move["ThirdLevel"])
                     {
-                        GoBoard b2 = new GoBoard(b);
-                        Point thirdMove = new Point((int)move2["ThirdMove"]["x"], (int)move2["ThirdMove"]["y"]);
-                        if (!b2.PointWithinBoard(thirdMove)) continue;
-                        b2.InternalMakeMove(thirdMove, c);
-                        Boolean solutionMove2 = SolutionHelper.GetSolutionMove(b2) != null;
-                        Point fourthMove = new Point((int)move2["FourthMove"]["x"], (int)move2["FourthMove"]["y"]);
-                        if (!b2.PointWithinBoard(fourthMove)) continue;
-                        b2.InternalMakeMove(fourthMove, c.Opposite());
+                        GoBoard b3 = new GoBoard(b2);
+                        Point fifthMove = new Point((int)move3["FifthMove"]["x"], (int)move3["FifthMove"]["y"]);
+                        if (!b3.PointWithinBoard(fifthMove)) continue;
+                        b3.InternalMakeMove(fifthMove, c);
+                        Point sixthMove = new Point((int)move3["SixthMove"]["x"], (int)move3["SixthMove"]["y"]);
+                        if (!b3.PointWithinBoard(sixthMove)) continue;
+                        b3.InternalMakeMove(sixthMove, c.Opposite());
                         //add to validation set
-                        validationSet.Add(GetExample(b, b2, c, solutionMove2));
-                        if (move["ThirdLevel"] == null) continue;
-
-                        foreach (JObject move3 in move["ThirdLevel"])
-                        {
-                            GoBoard b3 = new GoBoard(b2);
-                            Point fifthMove = new Point((int)move3["FifthMove"]["x"], (int)move3["FifthMove"]["y"]);
-                            if (!b3.PointWithinBoard(fifthMove)) continue;
-                            b3.InternalMakeMove(fifthMove, c);
-                            Boolean solutionMove3 = SolutionHelper.GetSolutionMove(b3) != null;
-                            Point sixthMove = new Point((int)move3["SixthMove"]["x"], (int)move3["SixthMove"]["y"]);
-                            if (!b3.PointWithinBoard(sixthMove)) continue;
-                            b3.InternalMakeMove(sixthMove, c.Opposite());
-                            //add to validation set
-                            validationSet.Add(GetExample(b2, b3, c, solutionMove3));
-                        }
+                        validationSet.Add(GetExample(b2, b3, c));
                     }
                 }
             }
-            return validationSet;
         }
 
         /// <summary>
         /// Get example.
         /// </summary>
-        public static Example GetExample(GoBoard rootBoard, GoBoard b, Content c, Boolean solutionMove = false)
+        public static Example GetExample(GoBoard rootBoard, GoBoard b, Content c)
         {
             Example example = Transform.ToNormalizedExample(b, (Checker)c);
             //result for next move
-            GameResult result = solutionMove ? GameResult.Win : GameResult.Loss;
+            GameResult result = GameResult.Loss;
             example.Labels.Add(Transform.ToValue(result));
             example.ScenarioName = b.GameInfo.ScenarioName;
             example.NumberOfMoves = b.LastMoves.Count;

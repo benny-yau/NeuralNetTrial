@@ -73,15 +73,12 @@ namespace NeuralNet
 		/// Trains a network using a given set of examples.
 		/// </summary>
 		/// <param name="examples">Set of examples.  Make sure features and labels lists are populated before training.</param>
-		/// <param name="iterations">Number of iterations to train on the given set of examples</param>
-		/// <returns>True if network is fully trained.  False otherwise.  (Based on Termination object given in constructor)</returns>
-		public bool TrainNetwork(List<Example> examples)
+		public void TrainNetwork(List<Example> examples)
 		{
 			AssertValidForTraining(examples);
 			Termination.CompleteIteration();
 			for (int i = 0; i < examples.Count; i++)
 				LearnOneExample(examples[i]);
-			return false;
 		}
 
 		public void LearnOneExample(Example example)
