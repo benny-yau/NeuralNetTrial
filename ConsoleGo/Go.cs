@@ -5,6 +5,7 @@ using ScenarioCollection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace ConsoleGo
         public void ShowNetworkResults()
         {
             //load network
-            String fileName = System.IO.Directory.GetCurrentDirectory() + @"\nn1\nn1.net";
+            String fileName = Directory.GetCurrentDirectory() + @"\nn1\nn1.net";
             Network network = Simulator.LoadNetwork(fileName);
             do
             {
@@ -32,13 +33,13 @@ namespace ConsoleGo
 
                 double score;
                 Tuple<int, int> move;
-                List<LinkedPoint<Tuple<int, int>>> columnEvaluations;
+                List<LinkedPoint<Tuple<int, int>>> evaluations;
                 Bot bot = new NeuralNetBot(checker, network, 0);
-                bot.recSelectMove(CurrentBoard, out move, out score, out columnEvaluations);
+                bot.recSelectMove(CurrentBoard, out move, out score, out evaluations);
                 Console.WriteLine(CurrentBoard.ToString() + Environment.NewLine);
                 GetAnswer(game);
                 Console.WriteLine(Environment.NewLine);
-                foreach (LinkedPoint<Tuple<int, int>> p in columnEvaluations.OrderByDescending(n => (double)n.CheckMove))
+                foreach (LinkedPoint<Tuple<int, int>> p in evaluations.OrderByDescending(n => (double)n.CheckMove))
                     Console.WriteLine("Move: " + p.Move + " - " + p.CheckMove.ToString());
                 Console.WriteLine(Environment.NewLine + Environment.NewLine);
             } while (true);
@@ -168,8 +169,8 @@ namespace ConsoleGo
             }
             else
             {
-                String fileName = System.IO.Directory.GetCurrentDirectory() + @"\nn1\nn1.net";
-                Network network = Simulator.LoadNetwork(fileName);
+                String fileName = Directory.GetCurrentDirectory() + @"\nn1\nn1.net";
+                network = Simulator.LoadNetwork(fileName);
                 network.Termination = termination;
             }
             do
@@ -193,7 +194,7 @@ namespace ConsoleGo
                 Debug.WriteLine("Total iterations: " + (network.Termination.TotalIterations + 1).ToString() + " out of " + totalCount);
                 //train scenario
                 Trainer Trainer = new Trainer(network);
-                Trainer.TrainWithValidationSet(() => board);
+                Trainer.TrainWithValidationSet(board);
                 network.Termination.CurrentIteration = 0;
             }
         }

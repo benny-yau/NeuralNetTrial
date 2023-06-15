@@ -31,7 +31,7 @@ namespace ConnectFour
 
             Turns = 0;
             Board board = rootBoard;
-            if (rootBoard is Go.Board) board = new GoBoard((Go.Board)example.RootBoard);
+
             if (example == null)
             {
                 //network play
@@ -88,11 +88,8 @@ namespace ConnectFour
                 if (i % 2 == 0) trace1.Add(trace[i]);
                 else trace2.Add(trace[i]);
             }
-            double lambda = .7;
-            double alpha = .1;
-            double gamma = .5;
-            UpdateTraceLabels(trace1, lambda, alpha, gamma);
-            UpdateTraceLabels(trace2, lambda, alpha, gamma);
+            UpdateTraceLabels(trace1);
+            UpdateTraceLabels(trace2);
             return trace1.Union(trace2).ToList();
         }
 
@@ -117,11 +114,8 @@ namespace ConnectFour
                 if (i % 2 == 0) trace1.Add(trace[i]);
                 else trace2.Add(trace[i]);
             }
-            double lambda = .7;
-            double alpha = .1;
-            double gamma = .5;
-            UpdateTraceLabels(trace1, lambda, alpha, gamma);
-            UpdateTraceLabels(trace2, lambda, alpha, gamma);
+            UpdateTraceLabels(trace1);
+            UpdateTraceLabels(trace2);
             return trace1.Union(trace2).ToList();
         }
 
@@ -133,14 +127,14 @@ namespace ConnectFour
             Bot current = allen.MyColor == board.NextPlayer ? allen : jason;
             while (!board.IsGameOver)
             {
-                Tuple<int, int> column;
+                Tuple<int, int> move;
                 double score;
                 //select move
-                current.SelectMove(board, out column, out score);
-                Log(String.Format("{0} picks column {1}   (Score: {2:f2})", (current == allen ? "Allen" : "Jason"), column, score));
-                if (column.Item1 == -1 || column.Item2 == -1) break;
+                current.SelectMove(board, out move, out score);
+                Log(String.Format("{0} picks column {1}   (Score: {2:f2})", (current == allen ? "Allen" : "Jason"), move, score));
+                if (move.Item1 == -1 || move.Item2 == -1) break;
                 //make move
-                board.AddChecker(current.MyColor, column.Item1, column.Item2);
+                board.AddChecker(current.MyColor, move.Item1, move.Item2);
                 //make prediction
                 Example example = Transform.ToNormalizedExample(board, current.MyColor);
                 example.Predictions.Add(score);
@@ -159,16 +153,16 @@ namespace ConnectFour
             Bot current = allen.MyColor == board.NextPlayer ? allen : jason;
             Go.Board b = (Go.Board)validationExample.Board;
 
-            Tuple<int, int> column;
+            Tuple<int, int> move;
             double score;
             foreach (Go.Point p in b.LastMoves)
             {
-                List<Go.LinkedPoint<Tuple<int, int>>> columnEvaluations;
+                List<Go.LinkedPoint<Tuple<int, int>>> evaluations;
                 //select move
-                current.recSelectMove(board, out column, out score, out columnEvaluations);
-                column = Tuple.Create(p.x, p.y);
+                current.recSelectMove(board, out move, out score, out evaluations);
+                move = Tuple.Create(p.x, p.y);
                 //make move
-                board.AddChecker(current.MyColor, column.Item1, column.Item2);
+                board.AddChecker(current.MyColor, move.Item1, move.Item2);
                 //make prediction
                 Example example = Transform.ToNormalizedExample(board, current.MyColor);
                 example.Predictions.Add(score);
@@ -180,10 +174,10 @@ namespace ConnectFour
         }
 
         // Critic: Takes as input the history/trace and estimates label based on successor board state (Successor meaning next time current player goes -- every two moves!).  Assume all features and predictions values are populated already.
-        private void UpdateTraceLabels(List<Example> trace, double lambda, double alpha, double gamma)
+        private void UpdateTraceLabels(List<Example> trace)
         {
             for (int i = 0; i + 1 < trace.Count; ++i)
-                trace[i].Labels = trace[trace.Count - 1].Predictions;
+                trace[i].Labels = trace[i + 1].Predictions;
             if (trace.Count > 0) trace[trace.Count - 1].Labels = trace[trace.Count - 1].Predictions;
         }
 
