@@ -122,15 +122,23 @@ namespace ConnectFour
             for (int i = 0; i <= scenarioList.Count - 1; i++)
             {
                 Game game = ScenarioHelper.GetScenarioFromList(scenarioList, i);
+                //survive or kill
                 if (!GameHelper.IsSurviveOrKill(game.GameInfo, surviveOrKill)) continue;
+                //parse player json
                 JArray playerJson = GameMapping.GetMappedJson(game);
                 ParseMappedJson(game, playerJson, validationSet);
 
                 if (game.GameInfo.solutionPoints.Count == 0) continue;
 
-                game.GameInfo.UserFirst = PlayerOrComputer.Computer;
-                game.InitializeComputerMove();
-                JArray challengeJson = GameMapping.GetMappedJson(game);
+                Game g = new Game(game);
+                g.GameInfo.UserFirst = PlayerOrComputer.Computer;
+                //make solution move
+                g.InitializeComputerMove();
+                //add solution move
+                validationSet.Add(GetExample(new GoBoard(game.Board), new GoBoard(g.Board)));
+
+                //parse challenge json
+                JArray challengeJson = GameMapping.GetMappedJson(g);
                 ParseMappedJson(game, challengeJson, validationSet);
             }
             return validationSet;
@@ -142,40 +150,46 @@ namespace ConnectFour
             {
                 GoBoard b = new GoBoard(game.Board);
                 Content c = GameHelper.GetContentForNextMove(b);
+                //make first move
                 Point firstMove = new Point((int)move["FirstMove"]["x"], (int)move["FirstMove"]["y"]);
                 if (!b.PointWithinBoard(firstMove)) continue;
-                b.InternalMakeMove(firstMove, c);
+                if (b.InternalMakeMove(firstMove, c, true) != MakeMoveResult.Legal) continue;
+                //make second move
                 Point secondMove = new Point((int)move["SecondMove"]["x"], (int)move["SecondMove"]["y"]);
                 if (!b.PointWithinBoard(secondMove)) continue;
-                b.InternalMakeMove(secondMove, c.Opposite());
+                if (b.InternalMakeMove(secondMove, c.Opposite(), true) != MakeMoveResult.Legal) continue;
                 //add to validation set
-                validationSet.Add(GetExample(new GoBoard(game.Board), b, c));
+                validationSet.Add(GetExample(new GoBoard(game.Board), b));
                 if (move["SecondLevel"] == null) continue;
 
                 foreach (JObject move2 in move["SecondLevel"])
                 {
                     GoBoard b2 = new GoBoard(b);
+                    //make third move
                     Point thirdMove = new Point((int)move2["ThirdMove"]["x"], (int)move2["ThirdMove"]["y"]);
                     if (!b2.PointWithinBoard(thirdMove)) continue;
-                    b2.InternalMakeMove(thirdMove, c);
+                    if (b2.InternalMakeMove(thirdMove, c, true) != MakeMoveResult.Legal) continue;
+                    //make fourth move
                     Point fourthMove = new Point((int)move2["FourthMove"]["x"], (int)move2["FourthMove"]["y"]);
                     if (!b2.PointWithinBoard(fourthMove)) continue;
-                    b2.InternalMakeMove(fourthMove, c.Opposite());
+                    if (b2.InternalMakeMove(fourthMove, c.Opposite(), true) != MakeMoveResult.Legal) continue;
                     //add to validation set
-                    validationSet.Add(GetExample(b, b2, c));
+                    validationSet.Add(GetExample(b, b2));
                     if (move["ThirdLevel"] == null) continue;
 
                     foreach (JObject move3 in move["ThirdLevel"])
                     {
                         GoBoard b3 = new GoBoard(b2);
+                        //make fifth move
                         Point fifthMove = new Point((int)move3["FifthMove"]["x"], (int)move3["FifthMove"]["y"]);
                         if (!b3.PointWithinBoard(fifthMove)) continue;
-                        b3.InternalMakeMove(fifthMove, c);
+                        if (b3.InternalMakeMove(fifthMove, c, true) != MakeMoveResult.Legal) continue;
+                        //make sixth move
                         Point sixthMove = new Point((int)move3["SixthMove"]["x"], (int)move3["SixthMove"]["y"]);
                         if (!b3.PointWithinBoard(sixthMove)) continue;
-                        b3.InternalMakeMove(sixthMove, c.Opposite());
+                        if (b3.InternalMakeMove(sixthMove, c.Opposite(), true) != MakeMoveResult.Legal) continue;
                         //add to validation set
-                        validationSet.Add(GetExample(b2, b3, c));
+                        validationSet.Add(GetExample(b2, b3));
                     }
                 }
             }
@@ -184,8 +198,9 @@ namespace ConnectFour
         /// <summary>
         /// Get example.
         /// </summary>
-        public static Example GetExample(GoBoard rootBoard, GoBoard b, Content c)
+        public static Example GetExample(GoBoard rootBoard, GoBoard b)
         {
+            Content c = GameHelper.GetContentForNextMove(g.Board);
             Example example = Transform.ToNormalizedExample(b, (Checker)c);
             //result for next move
             GameResult result = GameResult.Loss;

@@ -147,7 +147,7 @@ namespace ConsoleGo
         public void TrainNetwork(Boolean startNew = true)
         {
             List<Example> validationSet = DataParser.ValidationSet(GameType.Go, SurviveOrKill.Kill);
-            Termination termination = Termination.ByValidationSet(validationSet, 1800);
+            Termination termination = Termination.ByValidationSet(validationSet, 3600);
             NetworkParameters parameters = new NetworkParameters()
             {
                 InitialWeightInterval = new Tuple<double, double>(-0.05, 0.05),
