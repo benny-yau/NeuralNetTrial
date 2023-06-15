@@ -200,7 +200,7 @@ namespace ConnectFour
         /// </summary>
         public static Example GetExample(GoBoard rootBoard, GoBoard b)
         {
-            Content c = GameHelper.GetContentForNextMove(g.Board);
+            Content c = GameHelper.GetContentForNextMove(b);
             Example example = Transform.ToNormalizedExample(b, (Checker)c);
             //result for next move
             GameResult result = GameResult.Loss;
