@@ -22,6 +22,7 @@ namespace NeuralNet
 
         public int CurrentIteration;
         public int TotalIterations;
+        public int TargetIterations;
 
         [NonSerialized]
         public List<Example> ValidationSet;
@@ -34,7 +35,7 @@ namespace NeuralNet
         public static Termination ByIteration(int iterations)
         {
             if (!(iterations > 0)) throw new Exception("Iterations > 0");
-            return new Termination() { Type = TerminationType.ByIteration, TotalIterations = iterations };
+            return new Termination() { Type = TerminationType.ByIteration, TargetIterations = iterations };
         }
 
         public static Termination ByValidationSet(List<Example> validationSet, int validateCycle)

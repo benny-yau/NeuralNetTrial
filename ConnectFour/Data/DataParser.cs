@@ -26,7 +26,7 @@ namespace ConnectFour
                 if (gameType == GameType.ConnectFour)
                     validationSet = Parse();
                 else
-                    validationSet = ParseMappedJson(surviveOrKill);
+                    validationSet = ParseAllScenarios("Classics-A", "", SurviveOrKill.Kill);
             }
             return validationSet;
         }
@@ -98,13 +98,13 @@ namespace ConnectFour
                 GameSet gameSet = ScenarioHelper.GameSets[i];
                 if (gameSet.Name == "Problem-Set") continue;
                 if (gameSet.Levels.Count == 0)
-                    validationSet = validationSet.Union(ParseScenarioData(gameSet.Name, "", surviveOrKill)).ToList();
+                    validationSet = validationSet.Union(ParseAllScenarios(gameSet.Name, "", surviveOrKill)).ToList();
                 else
                 {
                     for (int j = 0; j <= gameSet.Levels.Count - 1; j++)
                     {
                         String level = gameSet.Levels[j];
-                        validationSet = validationSet.Union(ParseScenarioData(gameSet.Name, level, surviveOrKill)).ToList();
+                        validationSet = validationSet.Union(ParseAllScenarios(gameSet.Name, level, surviveOrKill)).ToList();
                     }
                 }
             }
@@ -112,9 +112,9 @@ namespace ConnectFour
         }
 
         /// <summary>
-        /// Parse scenario data.
+        /// Parse all scenarios.
         /// </summary>
-        public static List<Example> ParseScenarioData(String gameSet, String level, SurviveOrKill surviveOrKill)
+        public static List<Example> ParseAllScenarios(String gameSet, String level, SurviveOrKill surviveOrKill)
         {
             List<Example> validationSet = new List<Example>();
             List<Func<Scenario, Game>> scenarioList = ScenarioHelper.GetScenarioDelegates(gameSet, level);
@@ -122,30 +122,43 @@ namespace ConnectFour
             for (int i = 0; i <= scenarioList.Count - 1; i++)
             {
                 Game game = ScenarioHelper.GetScenarioFromList(scenarioList, i);
-                //survive or kill
-                if (!GameHelper.IsSurviveOrKill(game.GameInfo, surviveOrKill)) continue;
-                //parse player json
-                JArray playerJson = GameMapping.GetMappedJson(game);
-                ParseMappedJson(game, playerJson, validationSet);
-
-                if (game.GameInfo.solutionPoints.Count == 0) continue;
-
-                Game g = new Game(game);
-                g.GameInfo.UserFirst = PlayerOrComputer.Computer;
-                //make solution move
-                g.InitializeComputerMove();
-                //add solution move
-                validationSet.Add(GetExample(new GoBoard(game.Board), new GoBoard(g.Board)));
-
-                //parse challenge json
-                JArray challengeJson = GameMapping.GetMappedJson(g);
-                ParseMappedJson(game, challengeJson, validationSet);
+                ParseScenarioData(validationSet, game, surviveOrKill);
             }
             return validationSet;
         }
 
-        public static void ParseMappedJson(Game game, JArray mappedJson, List<Example> validationSet)
+        /// <summary>
+        /// Parse scenario data.
+        /// </summary>
+        public static void ParseScenarioData(List<Example> validationSet, Game game, SurviveOrKill surviveOrKill, Boolean includeAllMoves = false)
         {
+            //survive or kill
+            if (!GameHelper.IsSurviveOrKill(game.GameInfo, surviveOrKill)) return;
+            //parse player json
+            JArray playerJson = GameMapping.GetMappedJson(game);
+            ParseMappedJson(game, playerJson, validationSet, includeAllMoves);
+
+            if (game.GameInfo.solutionPoints.Count == 0) return;
+
+            Game g = new Game(game);
+            g.GameInfo.UserFirst = PlayerOrComputer.Computer;
+            //make solution move
+            g.InitializeComputerMove();
+            //add solution move
+            validationSet.Add(GetExample(new GoBoard(game.Board), new GoBoard(g.Board)));
+
+            //parse challenge json
+            JArray challengeJson = GameMapping.GetMappedJson(g);
+            ParseMappedJson(game, challengeJson, validationSet, includeAllMoves);
+        }
+
+        /// <summary>
+        /// Parse mapped json.
+        /// </summary>
+        public static void ParseMappedJson(Game game, JArray mappedJson, List<Example> validationSet, Boolean includeAllMoves = false)
+        {
+            GoBoard rootBoard = new GoBoard(game.Board);
+            if (includeAllMoves) AddMovesAtAllPointsOnBoard(rootBoard, validationSet);
             foreach (JObject move in mappedJson)
             {
                 GoBoard b = new GoBoard(game.Board);
@@ -159,7 +172,8 @@ namespace ConnectFour
                 if (!b.PointWithinBoard(secondMove)) continue;
                 if (b.InternalMakeMove(secondMove, c.Opposite(), true) != MakeMoveResult.Legal) continue;
                 //add to validation set
-                validationSet.Add(GetExample(new GoBoard(game.Board), b));
+                validationSet.Add(GetExample(rootBoard, b));
+                if (includeAllMoves) AddMovesAtAllPointsOnBoard(b, validationSet);
                 if (move["SecondLevel"] == null) continue;
 
                 foreach (JObject move2 in move["SecondLevel"])
@@ -175,6 +189,7 @@ namespace ConnectFour
                     if (b2.InternalMakeMove(fourthMove, c.Opposite(), true) != MakeMoveResult.Legal) continue;
                     //add to validation set
                     validationSet.Add(GetExample(b, b2));
+                    if (includeAllMoves) AddMovesAtAllPointsOnBoard(b2, validationSet);
                     if (move["ThirdLevel"] == null) continue;
 
                     foreach (JObject move3 in move["ThirdLevel"])
@@ -190,6 +205,7 @@ namespace ConnectFour
                         if (b3.InternalMakeMove(sixthMove, c.Opposite(), true) != MakeMoveResult.Legal) continue;
                         //add to validation set
                         validationSet.Add(GetExample(b2, b3));
+                        if (includeAllMoves) AddMovesAtAllPointsOnBoard(b3, validationSet);
                     }
                 }
             }
@@ -210,6 +226,30 @@ namespace ConnectFour
             example.Board = b;
             example.RootBoard = rootBoard;
             return example;
+        }
+
+        /// <summary>
+        /// Add moves at all points on board.
+        /// </summary>
+        public static void AddMovesAtAllPointsOnBoard(GoBoard board, List<Example> validationSet)
+        {
+            Content c = GameHelper.GetContentForNextMove(board);
+            Point? p = SolutionHelper.GetSolutionMove(board);
+            for (int y = 8; y <= 18; y++)
+            {
+                for (int x = 0; x <= 12; x++)
+                {
+                    if (board[x, y] != Content.Empty) continue;
+                    GoBoard b = new GoBoard(board);
+                    if (b.InternalMakeMove(x, y, c, true) != MakeMoveResult.Legal) continue;
+                    Example example = GetExample(board, b);
+                    example.Labels.Clear();
+                    GameResult result = GameResult.Win;
+                    if (p != null && p.Value.x == x && p.Value.y == y) result = GameResult.Loss;
+                    example.Labels.Add(Transform.ToValue(result));
+                    validationSet.Add(example);
+                }
+            }
         }
         #endregion
     }

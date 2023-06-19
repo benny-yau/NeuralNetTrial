@@ -45,10 +45,9 @@ namespace ConnectFour
         /// <summary>
         /// Train with validation set.
         /// </summary>
-        public void TrainWithValidationSet(GoBoard board)
+        public void TrainWithValidationSet(GoBoard board, List<Example> validationSet)
         {
             String scenarioName = board.GameInfo.ScenarioName;
-            List<Example> validationSet = DataParser.ValidationSet().Where(n => n.ScenarioName == scenarioName).ToList();
             if (validationSet.Count == 0) return;
 
             for (int i = 0; i <= validationSet.Count - 1; i++)
@@ -57,7 +56,7 @@ namespace ConnectFour
                 Board b = new GoBoard((Go.Board)example.RootBoard);
                 List<Example> trace = Simulator.Play(b, Network, example);
                 Network.TrainNetwork(trace);
-                if (i % 10 == 0) Debug.WriteLine("iter : " + (i + 1).ToString() + " out of " + validationSet.Count);
+                if (i % 50 == 0) Debug.WriteLine("iter : " + (i + 1).ToString() + " out of " + validationSet.Count);
             }
         }
     }

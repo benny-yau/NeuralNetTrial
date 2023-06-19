@@ -29,13 +29,9 @@ namespace ConsoleGo
                 Game game = GetScenarioGame();
                 GoBoard CurrentBoard = new GoBoard(game.Board);
                 Content c = game.Board.GameInfo.StartContent;
-                Checker checker = (Checker)c;
 
-                double score;
-                Tuple<int, int> move;
-                List<LinkedPoint<Tuple<int, int>>> evaluations;
-                Bot bot = new NeuralNetBot(checker, network, 0);
-                bot.recSelectMove(CurrentBoard, out move, out score, out evaluations);
+                Bot bot = new NeuralNetBot((Checker)c, network, 0);
+                (Tuple<int, int> move, double score, List<LinkedPoint<Tuple<int, int>>> evaluations) = bot.recSelectMove(CurrentBoard);
                 Console.WriteLine(CurrentBoard.ToString() + Environment.NewLine);
                 GetAnswer(game);
                 Console.WriteLine(Environment.NewLine);
@@ -147,7 +143,7 @@ namespace ConsoleGo
         public void TrainNetwork(Boolean startNew = true)
         {
             List<Example> validationSet = DataParser.ValidationSet(GameType.Go, SurviveOrKill.Kill);
-            Termination termination = Termination.ByValidationSet(validationSet, 3600);
+            Termination termination = Termination.ByValidationSet(validationSet, 30000);
             NetworkParameters parameters = new NetworkParameters()
             {
                 InitialWeightInterval = new Tuple<double, double>(-0.05, 0.05),
@@ -182,7 +178,6 @@ namespace ConsoleGo
 
         public static void TrainOnScenario(String gameSet, String level)
         {
-            int totalCount = DataParser.ValidationSet(GameType.Go).Count;
             List<Func<Scenario, Game>> scenarioList = ScenarioHelper.GetScenarioDelegates(gameSet, level);
             for (int i = 0; i <= scenarioList.Count - 1; i++)
             {
@@ -190,11 +185,15 @@ namespace ConsoleGo
                 Game game = ScenarioHelper.GetScenarioFromList(scenarioList, i);
                 GoBoard board = new GoBoard(game.Board);
 
+                //get all moves
+                List<Example> validationSet = new List<Example>();
+                DataParser.ParseScenarioData(validationSet, game, SurviveOrKill.Kill, true);
+
                 Debug.WriteLine("Scenario: " + game.GameInfo.ScenarioName + " - " + (i + 1).ToString() + " out of " + scenarioList.Count + " in " + gameSet + ((!String.IsNullOrEmpty(level)) ? ", " + level : ""));
-                Debug.WriteLine("Total iterations: " + (network.Termination.TotalIterations + 1).ToString() + " out of " + totalCount);
+                Debug.WriteLine("Total iterations: " + (network.Termination.TotalIterations + 1).ToString());
                 //train scenario
                 Trainer Trainer = new Trainer(network);
-                Trainer.TrainWithValidationSet(board);
+                Trainer.TrainWithValidationSet(board, validationSet);
                 network.Termination.CurrentIteration = 0;
             }
         }

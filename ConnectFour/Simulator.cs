@@ -23,15 +23,13 @@ namespace ConnectFour
         /// <param name="board">Starting board that the bots will play on.  This need not be empty!</param>
         /// <param name="network">Neural network that provides the AI for gameplay.</param>
         /// <returns>Trace of game sequence, each board state stored as a Neural Net Example</returns>
-        public List<Example> Play(Board rootBoard, Network network, Example example = null)
+        public List<Example> Play(Board board, Network network, Example example = null)
         {
             Bot allen = new NeuralNetBot(Checker.Black, network); // <-- you know he will win :)
             Bot jason = new NeuralNetBot(Checker.White, network);
             List<Example> trace = new List<Example>();
 
             Turns = 0;
-            Board board = rootBoard;
-
             if (example == null)
             {
                 //network play
@@ -127,12 +125,10 @@ namespace ConnectFour
             Bot current = allen.MyColor == board.NextPlayer ? allen : jason;
             while (!board.IsGameOver)
             {
-                Tuple<int, int> move;
-                double score;
                 //select move
-                current.SelectMove(board, out move, out score);
+                (Tuple<int, int> move, double score) = current.SelectMove(board);
+                if (move == null) break;
                 Log(String.Format("{0} picks column {1}   (Score: {2:f2})", (current == allen ? "Allen" : "Jason"), move, score));
-                if (move.Item1 == -1 || move.Item2 == -1) break;
                 //make move
                 board.AddChecker(current.MyColor, move.Item1, move.Item2);
                 //make prediction
@@ -152,7 +148,9 @@ namespace ConnectFour
         {
             Bot current = allen.MyColor == board.NextPlayer ? allen : jason;
             Go.Board b = (Go.Board)validationExample.Board;
-            foreach (Go.Point p in b.LastMoves)
+            Go.Board rootBoard = (Go.Board)validationExample.RootBoard;
+            List<Go.Point> lastMoves = b.LastMoves.Skip(rootBoard.LastMoves.Count).ToList();
+            foreach (Go.Point p in lastMoves)
             {
                 board.AddChecker(current.MyColor, p.x, p.y);
                 Example example = Transform.ToNormalizedExample(board, current.MyColor);

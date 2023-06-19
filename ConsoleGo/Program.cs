@@ -17,7 +17,7 @@ namespace ConsoleGo
                 int i = Go.SelectFromList<int>(new List<int> { 1, 2 });
                 Go game = new Go();
                 if (i == 1)
-                    game.TrainNetwork();
+                    game.TrainNetwork(false);
                 else if (i == 2)
                     game.ShowNetworkResults();
             }

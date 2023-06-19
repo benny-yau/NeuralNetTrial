@@ -32,12 +32,11 @@ namespace ConnectFour
         public abstract Example MakeExample(Board board, Checker color);
         public abstract void LearnOneExample(Example example);
 
-        public void recSelectMove(Board board, out Tuple<int, int> column, out double score, out List<Go.LinkedPoint<Tuple<int, int>>> evaluations)
+        public (Tuple<int, int>, double, List<Go.LinkedPoint<Tuple<int, int>>>) recSelectMove(Board board)
         {
+            List<Go.LinkedPoint<Tuple<int, int>>> evaluations = new List<Go.LinkedPoint<Tuple<int, int>>>();
             Tuple<int, int> bestX = null;
-            evaluations = new List<Go.LinkedPoint<Tuple<int, int>>>();
             double bestV = Double.NegativeInfinity;
-
             IEnumerable<Board> boards = board.GetPossibleMoves(MyColor);
             foreach (Board b in boards)
             {
@@ -49,11 +48,7 @@ namespace ConnectFour
                     bestX = b.Move;
                 }
             }
-            if (boards.Count() == 0)
-                column = Tuple.Create(0, 0);
-            else
-                column = bestX ?? boards.First().Move;
-            score = bestV;
+            return (bestX, bestV, evaluations);
         }
 
         /// <summary>
@@ -63,10 +58,9 @@ namespace ConnectFour
         ///  low values of Lambda will have the opposite effect Lambda should be positive number.  Otherwise, no exploration will take place. 
         ///  If non-positive, just return the "best" move now, to avoid divide-by-zero type issues.
         /// </summary>
-        public void SelectMove(Board board, out Tuple<int, int> move, out double score)
+        public (Tuple<int, int>, double) SelectMove(Board board)
         {
-            List<Go.LinkedPoint<Tuple<int, int>>> evaluations;
-            recSelectMove(board, out move, out score, out evaluations);
+            (Tuple<int, int> move, double score, List<Go.LinkedPoint<Tuple<int, int>>> evaluations) = recSelectMove(board);
             if (LambdaType == LambdaType.ProbabilityDistribution && Lambda > 0)
             {
                 double sum = 0.0;
@@ -88,13 +82,14 @@ namespace ConnectFour
                         break;
                 }
                 if (evaluations.Count() == 0)
-                    move = Tuple.Create(-1, -1);
+                    move = null;
                 else
                 {
                     move = evaluations[c].Move;
                     score = (double)evaluations[c].CheckMove;
                 }
             }
+            return (move, score);
         }
 
 

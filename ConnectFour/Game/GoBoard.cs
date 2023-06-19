@@ -16,17 +16,8 @@ namespace ConnectFour
         {
         }
 
-        public GoBoard(Go.Board fromBoard) : base(fromBoard.SizeY, fromBoard.SizeX)
+        public GoBoard(Go.Board fromBoard) : base(fromBoard)
         {
-            content = new Go.Content[fromBoard.SizeY, fromBoard.SizeX];
-            for (int i = 0; i < SizeX; i++)
-            {
-                for (int j = 0; j < SizeY; j++)
-                {
-                    content[i, j] = fromBoard[i, j];
-                }
-            }
-            this.GameInfo = fromBoard.GameInfo;
         }
 
         public Checker[,] Cells { get; set; }
@@ -48,7 +39,7 @@ namespace ConnectFour
         {
             Go.Point p = new Go.Point(column, (int)r);
             Go.Board b = (Go.Board)this;
-            b.InternalMakeMove(p, (Go.Content)c);
+            b.InternalMakeMove(p, (Go.Content)c, true);
 
             ConnectFour.Board board = (ConnectFour.Board)this;
             Go.Point move = b.Move.Value;

@@ -111,7 +111,6 @@ namespace ConnectFour
 
             if (Mode == GameMode.HumanVComputer)
             {
-                double score;
                 CurrentBoard.AddChecker(Checker, column);
                 if (CurrentBoard.IsGameOver)
                 {
@@ -119,8 +118,7 @@ namespace ConnectFour
                     GameOverAnimation();
                     return;
                 }
-                Tuple<int, int> column2;
-                Bot.SelectMove(CurrentBoard, out column2, out score);
+                (Tuple<int, int> column2, double score) = Bot.SelectMove(CurrentBoard);
                 CurrentBoard.AddChecker(CurrentBoard.Toggle(Checker), column2.Item1);
                 BatchAddCheckers(Checker, new List<int> { column, column2.Item1 }, updateBoard: false);
             }

@@ -44,7 +44,6 @@ namespace ConsoleGo
 
             Checker checker = Checker.Black;
             Board CurrentBoard = new ConnectFourBoard();
-            double score;
             int column;
             do
             {
@@ -63,8 +62,7 @@ namespace ConsoleGo
                 Console.WriteLine(CurrentBoard.ToString());
 
                 //make computer move
-                Tuple<int, int> move;
-                bot.SelectMove(CurrentBoard, out move, out score);
+                (Tuple<int, int> move, double score) = bot.SelectMove(CurrentBoard);
                 CurrentBoard.AddChecker(CurrentBoard.Toggle(checker), move.Item1);
                 Console.WriteLine(CurrentBoard.ToString());
                 if (CurrentBoard.IsGameOver)
